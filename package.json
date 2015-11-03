@@ -1,0 +1,28 @@
+{
+    "name": "ai-grammar-teacher",
+    "version": "0.0.1",
+    "description": "App to insert writing mistakes into a block of text to help students learn to write",
+    "author": {
+        "name": "Eric Connelly",
+        "email": "eric.connelly08@gmail.com"
+    },
+    "private": true,
+    "dependencies": {
+        "bower": "1.x",
+        "express": "4.x",
+        "grunt": "~0.4.5",
+        "grunt-cli": "~0.1.13",
+        "grunt-contrib-concat": "~0.5.0",
+        "grunt-concurrent": "~1.0.0",
+        "grunt-contrib-jshint": "~0.10.0",
+        "grunt-nodemon": "~0.4.0",
+        "nlp_compromise": "1.x"
+    },
+    "scripts": {
+        "postinstall": "bower install",
+
+        "prestart": "npm install",
+        "start": "nodemon server.js --apihost=localhost --apiport=8888"
+    }
+}
+

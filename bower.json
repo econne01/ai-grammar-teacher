@@ -1,0 +1,11 @@
+{
+  "name": "ai-grammar-teacher",
+  "description": "An app for teaching about grammar and writing",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}
+
