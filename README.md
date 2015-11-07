@@ -10,3 +10,6 @@ References
 Optional for later
 * [Browserify](http://browserify.org/) to make a node server file usable on client side
 * [Node-inspector](https://github.com/node-inspector/node-inspector) for debugging node server app
+
+Testing
+* [Tutorial](http://code.tutsplus.com/tutorials/testing-in-nodejs--net-35018) about Node + Mocha + Chai
