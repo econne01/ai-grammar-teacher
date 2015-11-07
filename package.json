@@ -17,7 +17,8 @@
     "grunt-concurrent": "~1.0.0",
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-nodemon": "~0.4.0",
-    "nlp_compromise": "1.x"
+    "nlp_compromise": "1.x",
+    "underscore": "1.x"
   },
   "scripts": {
     "postinstall": "bower install",

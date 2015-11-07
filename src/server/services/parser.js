@@ -1,9 +1,12 @@
-var express = require('express');
+var WordConfusionTeacher = require('./teachers/word_confusion');
 
 var Parser = function () {
 
+    this.lessonDeltas = [];
+
     this.addMistakes = function addMistakes(inputText) {
-        console.log('Received input to parser');
+        var teacher = new WordConfusionTeacher();
+        this.lessonDeltas = teacher.getPossibleErrors(inputText);
         return inputText;
     };
 };
