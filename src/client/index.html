@@ -11,15 +11,17 @@
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
         <!-- Place favicon.ico in the root directory -->
 
-        <!-- <link rel="stylesheet" href="css/main.css"> -->
+        <link rel="stylesheet" href="css/main.css">
     </head>
     <body>
-        <div id="text-input-wrapper">
-            <input id="text-input" type="textarea" />
-            <button id="generate_new_text__button" onClick="onClick()">Generate</button>
-        </div>
-        <div id="text-output">
-            Some initial output
+        <div id="text-container">
+            <div id="text-input-wrapper" class="text-wrapper">
+                <div id="text-input" class="text-display" contenteditable></div>
+                <button id="generate_new_text__button" onClick="onClick()">Generate</button>
+            </div>
+            <div id="text-output-wrapper" class="text-wrapper">
+                <div id="text-output" class="text-display" contenteditable></div>
+            </div>
         </div>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
