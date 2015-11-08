@@ -9,7 +9,6 @@ router.post('/mistakify', function(request, response) {
     var parser = new Parser();
     var outputText = parser.getEditedText(inputText);
     response.json({
-        'outputText': outputText,
         'editItems': parser.lessonDeltas
     });
 });

@@ -27,12 +27,15 @@ var WordConfusionTeacher = BaseTeacher.extend({
      */
     getPossibleErrors : function (tokens) {
         var errors = [];
-        _.each(tokens, function(token, index) {
+        _.each(tokens, function(token, tokenIndex) {
             var wordList = this._getConfusionWordList(token.normalised);
             if (!_.isUndefined(wordList)) {
                 _.each(wordList, function(confusionWord) {
                     if (confusionWord !== token.normalised) {
-                        var editItem = new EditItem(index, index, confusionWord, 'word-confusion');
+                        var startIndex = token.startIndex,
+                            endIndex = startIndex + token.text.length;
+                        // @todo - handle capitalizd words and punctuation
+                        var editItem = new EditItem(startIndex, endIndex, confusionWord, 'word-confusion');
                         errors.push(editItem);
                     }
                 });

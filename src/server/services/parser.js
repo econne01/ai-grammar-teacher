@@ -25,7 +25,7 @@ var Parser = function () {
 
     this.getEditedText = function getEditedText(inputText) {
         var outputText = '';
-        var tokens = this.getWordTokens(inputText);
+        var tokens = this.parseToTokens(inputText);
         this.addMistakes(tokens);
         for (var i=0; i<tokens.length; i++) {
             var editItem = _.find(this.lessonDeltas, function(editItem) {
@@ -41,10 +41,17 @@ var Parser = function () {
         return outputText;
     };
 
-    this.getWordTokens = function getWordTokens(inputText) {
-        return _.flatten(_.map(nlp.tokenize(inputText), function(sentence) {
-            return sentence.tokens;
-        }));
+    this.parseToTokens = function parseToTokens(inputText) {
+        var tokens = [],
+            charIndex = 0;
+        _.each(nlp.tokenize(inputText), function(sentence) {
+            _.each(sentence.tokens, function(token) {
+                token.startIndex = inputText.indexOf(token.text, charIndex);
+                tokens.push(token);
+                charIndex = token.startIndex + token.text.length;
+            });
+        });
+        return tokens;
     };
 
     /**
