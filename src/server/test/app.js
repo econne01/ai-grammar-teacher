@@ -8,7 +8,6 @@ var sampleInputText = 'Dick and Jane were two children who had a series of books
     'original children\'s books.';
 
 console.log('testing. Hello? World?');
-var outputText = parser.addMistakes(sampleInputText);
+var outputText = parser.getEditedText(sampleInputText);
 console.log('InputText = \n', sampleInputText);
 console.log('OutputText = \n', outputText);
-console.log(parser.lessonDeltas);

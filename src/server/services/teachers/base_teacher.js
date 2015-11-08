@@ -15,10 +15,10 @@ var BaseTeacher = Class.extend({
     /**
      * Search through given input text for examples of a writing mistake
      * that could be inserted into text.
-     * @param {string} inputText
+     * @param {Array.<token>} tokens
      * @returns {Array.<EditItem>} 
      */
-    getPossibleErrors : function (inputText) {
+    getPossibleErrors : function (tokens) {
         return [];
     }
 });

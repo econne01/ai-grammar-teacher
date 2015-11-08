@@ -1,13 +1,67 @@
+var _ = require('underscore');
+var nlp = require('nlp_compromise');
 var WordConfusionTeacher = require('./teachers/word_confusion');
 
 var Parser = function () {
 
     this.lessonDeltas = [];
 
-    this.addMistakes = function addMistakes(inputText) {
+    // Edit Threshold is a measure of how likely it is to choose any given
+    // edit to insert an error into the output text. Higher threshold means 
+    // more likely to insert more errors.
+    this.chooseEditThreshold = 0.65;
+
+    this.addMistakes = function addMistakes(tokens) {
         var teacher = new WordConfusionTeacher();
-        this.lessonDeltas = teacher.getPossibleErrors(inputText);
-        return inputText;
+        var possibleErrors = teacher.getPossibleErrors(tokens);
+        _.each(possibleErrors, function(editItem) {
+            if (!this._isEditConflict(editItem)) {
+                if (Math.random() >= this.chooseEditThreshold) {
+                    this.lessonDeltas.push(editItem);
+                }
+            }
+        }, this);
+    };
+
+    this.getEditedText = function getEditedText(inputText) {
+        var outputText = '';
+        var tokens = this.getWordTokens(inputText);
+        this.addMistakes(tokens);
+        for (var i=0; i<tokens.length; i++) {
+            var editItem = _.find(this.lessonDeltas, function(editItem) {
+                return editItem.startIndex === i;
+            });
+            if (editItem) {
+                outputText += ' ' + editItem.editText;
+                i = editItem.endIndex;
+            } else {
+                outputText += ' ' + tokens[i].text;
+            }
+        }
+        return outputText;
+    };
+
+    this.getWordTokens = function getWordTokens(inputText) {
+        return _.flatten(_.map(nlp.tokenize(inputText), function(sentence) {
+            return sentence.tokens;
+        }));
+    };
+
+    /**
+     * Return whether or not the given editItem would conflict with any editItems
+     * already selected to be used in output text. We don't want to edit the same
+     * portion of source text in multiple different ways
+     * @param {EditItem} editItem
+     * @returns {boolean}
+     */
+    this._isEditConflict = function (editItem) {
+        var conflictingItem = _.find(this.lessonDeltas, function(chosenEditItem) {
+            return ((chosenEditItem.startIndex <= editItem.startIndex &&
+                editItem.startIndex <= chosenEditItem.endIndex) ||
+                (editItem.startIndex <= chosenEditItem.startIndex &&
+                chosenEditItem.startIndex <= editItem.endIndex));
+        });
+        return !_.isUndefined(conflictingItem);
     };
 };
 

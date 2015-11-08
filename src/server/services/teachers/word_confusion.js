@@ -1,4 +1,3 @@
-var nlp = require('nlp_compromise');
 var _ = require('underscore');
 var BaseTeacher = require('./base_teacher');
 var EditItem = require('../../models/edit_item');
@@ -12,6 +11,7 @@ var WordConfusionTeacher = BaseTeacher.extend({
     confusionWords : [
         ['affect', 'effect'],
         ['its', 'it\'s'],
+        ['than', 'then'],
         ['there', 'their', 'they\'re'],
         ['to', 'too', 'two'],
         ['whose', 'who\'s'],
@@ -22,14 +22,11 @@ var WordConfusionTeacher = BaseTeacher.extend({
      * Search through given input text for examples of frequently confused words.
      * Return list of possible edits to the text that could swap in an incorrect word.
      * @override
-     * @param {string} inputText
+     * @param {Array.<token>} tokens
      * @returns {Array.<EditItem>} 
      */
-    getPossibleErrors : function (inputText) {
+    getPossibleErrors : function (tokens) {
         var errors = [];
-        var tokens = _.flatten(_.map(nlp.tokenize(inputText), function(sentence) {
-            return sentence.tokens;
-        }));
         _.each(tokens, function(token, index) {
             var wordList = this._getConfusionWordList(token.normalised);
             if (!_.isUndefined(wordList)) {
