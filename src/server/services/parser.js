@@ -65,4 +65,4 @@ var Parser = function () {
     };
 };
 
-module.exports = new Parser();
+module.exports = Parser;

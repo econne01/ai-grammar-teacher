@@ -1,4 +1,4 @@
-var parser = require('../services/parser');
+var Parser = require('../services/parser');
 
 var sampleInputText = 'Dick and Jane were two children who had a series of books ' +
     'written about them that were used to help real children learn to read ' + 
@@ -7,7 +7,10 @@ var sampleInputText = 'Dick and Jane were two children who had a series of books
     'bank robbery to make a living. Their movie characters sure seem different than the ' +
     'original children\'s books.';
 
+var metsInputText = 'NEW YORK -- The New York Mets have made a one-year, $15.8 million qualifying offer to free-agent infielder Daniel Murphy.';
+
 console.log('testing. Hello? World?');
-var outputText = parser.getEditedText(sampleInputText);
+var parser = new Parser();
+var outputText = parser.getEditedText(metsInputText);
 console.log('InputText = \n', sampleInputText);
 console.log('OutputText = \n', outputText);
