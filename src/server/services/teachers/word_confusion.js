@@ -9,8 +9,20 @@ var WordConfusionTeacher = BaseTeacher.extend({
 
     // List of lists. What words are often confused for each other
     confusionWords : [
+        ['accept', 'except'],
         ['affect', 'effect'],
+        ['allude', 'elude'],
+        ['allusion', 'illusion'],
+        ['ascent', 'assent'],
+        ['baited', 'bated'],
+        ['breath', 'breathe'],
+        ['complement', 'compliment'],
+        ['desert', 'dessert'],
+        ['elicit', 'illicit'],
         ['its', 'it\'s'],
+        ['lead', 'led'],
+        ['passed', 'past'],
+        ['principal', 'principle'],
         ['than', 'then'],
         ['there', 'their', 'they\'re'],
         ['to', 'too', 'two'],
