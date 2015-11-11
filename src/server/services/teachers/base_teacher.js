@@ -1,4 +1,5 @@
-// var BaseClass = require('../../../3p/duh');
+var _ = require('underscore');
+var nlp = require('nlp_compromise');
 var Class = require('../../../3p/inheritance_class');
 
 /**
@@ -18,8 +19,27 @@ var BaseTeacher = Class.extend({
      * @param {Array.<token>} tokens
      * @returns {Array.<EditItem>} 
      */
-    getPossibleErrors : function (tokens) {
+    getPossibleErrors : function (inputText) {
         return [];
+    },
+
+    /**
+     * Use NLP to parse an input string into tokens. Modify tokens to add character start_index
+     * where token text is located within larger inputText string
+     * @param inputText
+     * @returns {Array}
+     */
+    parseToTokens : function parseToTokens(inputText) {
+        var tokens = [],
+            charIndex = 0;
+        _.each(nlp.tokenize(inputText), function(sentence) {
+            _.each(sentence.tokens, function(token) {
+                token.startIndex = inputText.indexOf(token.text, charIndex);
+                tokens.push(token);
+                charIndex = token.startIndex + token.text.length;
+            });
+        });
+        return tokens;
     }
 });
 

@@ -37,8 +37,9 @@ var WordConfusionTeacher = BaseTeacher.extend({
      * @param {Array.<token>} tokens
      * @returns {Array.<EditItem>} 
      */
-    getPossibleErrors : function (tokens) {
-        var errors = [];
+    getPossibleErrors : function (inputText) {
+        var errors = [],
+            tokens = this.parseToTokens(inputText);
         _.each(tokens, function(token, tokenIndex) {
             var wordList = this._getConfusionWordList(token.normalised);
             if (!_.isUndefined(wordList)) {

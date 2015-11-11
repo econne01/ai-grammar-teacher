@@ -1,5 +1,4 @@
 var _ = require('underscore');
-var nlp = require('nlp_compromise');
 var WordConfusionTeacher = require('./teachers/word_confusion');
 
 var Parser = function () {
@@ -11,9 +10,9 @@ var Parser = function () {
     // more likely to insert more errors.
     this.chooseEditThreshold = 0.65;
 
-    this.addMistakes = function addMistakes(tokens) {
+    this.addMistakes = function addMistakes(inputText) {
         var teacher = new WordConfusionTeacher();
-        var possibleErrors = teacher.getPossibleErrors(tokens);
+        var possibleErrors = teacher.getPossibleErrors(inputText);
         _.each(possibleErrors, function(editItem) {
             if (!this._isEditConflict(editItem)) {
                 if (Math.random() >= this.chooseEditThreshold) {
@@ -23,35 +22,24 @@ var Parser = function () {
         }, this);
     };
 
-    this.getEditedText = function getEditedText(inputText) {
-        var outputText = '';
-        var tokens = this.parseToTokens(inputText);
-        this.addMistakes(tokens);
-        for (var i=0; i<tokens.length; i++) {
-            var editItem = _.find(this.lessonDeltas, function(editItem) {
-                return editItem.startIndex === i;
-            });
-            if (editItem) {
-                outputText += ' ' + editItem.editText;
-                i = editItem.endIndex;
-            } else {
-                outputText += ' ' + tokens[i].text;
-            }
-        }
-        return outputText;
+    this.clear = function clear() {
+        this.lessonDeltas = [];
     };
 
-    this.parseToTokens = function parseToTokens(inputText) {
-        var tokens = [],
-            charIndex = 0;
-        _.each(nlp.tokenize(inputText), function(sentence) {
-            _.each(sentence.tokens, function(token) {
-                token.startIndex = inputText.indexOf(token.text, charIndex);
-                tokens.push(token);
-                charIndex = token.startIndex + token.text.length;
-            });
+    this.getEditedText = function getEditedText(inputText) {
+        var outputText = '';
+        this.clear();
+        this.addMistakes(inputText);
+
+        var parsedCharIndex = 0;
+        _.each(this.lessonDeltas, function (editItem) {
+            outputText += inputText.slice(parsedCharIndex, editItem.startIndex);
+            outputText += editItem.editText;
+            parsedCharIndex = editItem.endIndex;
         });
-        return tokens;
+        // Add any remaining input Text until the end of input
+        outputText += inputText.slice(parsedCharIndex);
+        return outputText;
     };
 
     /**
