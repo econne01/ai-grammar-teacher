@@ -12,8 +12,8 @@ var MisplacedModifierTeacher = BaseTeacher.extend({
         'so they describe an unintended target (Noun, Verb).',
 
     modifierSentenceStructures : [
-        // Any 2 prepositional phrases
-        /.*IN.+IN.*/,
+        // Any 2 prepositional phrases in a row
+        /IN,[\w]+,IN,[\w]+/,
         // Only, Just, Nearly, Almost (Adjectives acting on verbs?) descriptors
         new RegExp('.*' + NOUN_REGEX + ',JJ,VB.*')
     ],
@@ -44,10 +44,13 @@ var MisplacedModifierTeacher = BaseTeacher.extend({
      */
     _hasModifierSentenceStructure : function (sentence) {
         var isMatchingStructure = false,
-            structure = sentence.tags().join();
+            structure = sentence.tags().join(),
+            tokens = this.parseToTokens(sentence.text());
         _.find(this.modifierSentenceStructures, function(modifierStructure) {
             if (modifierStructure.test(structure)) {
                 isMatchingStructure = true;
+                var matchStart = structure.search(modifierStructure);
+                var startToken = structure.slice(0, matchStart).split(',').length;
             }
             return isMatchingStructure;
         });

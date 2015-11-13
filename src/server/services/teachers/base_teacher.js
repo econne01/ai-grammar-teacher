@@ -31,8 +31,9 @@ var BaseTeacher = Class.extend({
      */
     parseToTokens : function parseToTokens(inputText) {
         var tokens = [],
-            charIndex = 0;
-        _.each(nlp.tokenize(inputText), function(sentence) {
+            charIndex = 0,
+            sentences = nlp.pos(inputText).sentences;
+        _.each(sentences, function(sentence) {
             _.each(sentence.tokens, function(token) {
                 token.startIndex = inputText.indexOf(token.text, charIndex);
                 tokens.push(token);
