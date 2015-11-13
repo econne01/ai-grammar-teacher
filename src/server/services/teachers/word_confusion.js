@@ -34,7 +34,7 @@ var WordConfusionTeacher = BaseTeacher.extend({
      * Search through given input text for examples of frequently confused words.
      * Return list of possible edits to the text that could swap in an incorrect word.
      * @override
-     * @param {Array.<token>} tokens
+     * @param {String} inputText
      * @returns {Array.<EditItem>} 
      */
     getPossibleErrors : function (inputText) {

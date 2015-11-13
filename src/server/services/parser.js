@@ -1,9 +1,14 @@
 var _ = require('underscore');
+var MisplacedModifierTeacher = require('./teachers/misplaced_modifier');
 var WordConfusionTeacher = require('./teachers/word_confusion');
 
 var Parser = function () {
 
     this.lessonDeltas = [];
+    this.teachingClasses = [
+        MisplacedModifierTeacher
+        // WordConfusionTeacher
+    ];
 
     // Edit Threshold is a measure of how likely it is to choose any given
     // edit to insert an error into the output text. Higher threshold means 
@@ -11,14 +16,16 @@ var Parser = function () {
     this.chooseEditThreshold = 0.65;
 
     this.addMistakes = function addMistakes(inputText) {
-        var teacher = new WordConfusionTeacher();
-        var possibleErrors = teacher.getPossibleErrors(inputText);
-        _.each(possibleErrors, function(editItem) {
-            if (!this._isEditConflict(editItem)) {
-                if (Math.random() >= this.chooseEditThreshold) {
-                    this.lessonDeltas.push(editItem);
+        _.each(this.teachingClasses, function(teachingClass) {
+            var teacher = new teachingClass();
+            var possibleErrors = teacher.getPossibleErrors(inputText);
+            _.each(possibleErrors, function(editItem) {
+                if (!this._isEditConflict(editItem)) {
+                    if (Math.random() >= this.chooseEditThreshold) {
+                        this.lessonDeltas.push(editItem);
+                    }
                 }
-            }
+            }, this);
         }, this);
     };
 
