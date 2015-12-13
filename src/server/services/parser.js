@@ -13,7 +13,7 @@ var Parser = function () {
     // Edit Threshold is a measure of how likely it is to choose any given
     // edit to insert an error into the output text. Higher threshold means 
     // more likely to insert more errors.
-    this.chooseEditThreshold = 0.65;
+    this.chooseEditThreshold = 0.01;
 
     this.addMistakes = function addMistakes(inputText) {
         _.each(this.teachingClasses, function(teachingClass) {

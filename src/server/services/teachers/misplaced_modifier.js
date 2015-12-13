@@ -2,6 +2,7 @@ var _ = require('underscore');
 var nlp = require('nlp_compromise');
 var BaseTeacher = require('./base_teacher');
 var EditItem = require('../../models/edit_item');
+var tokensToText = require('../util/tokens_to_text');
 
 
 var NOUN_REGEX = '[NN,NNP,NNPA,NNPS,NNS,PRP]';
@@ -35,68 +36,124 @@ var MisplacedModifierTeacher = BaseTeacher.extend({
         var errors = [];
         var sentences = nlp.pos(inputText).sentences;
         _.each(sentences, function(sentence) {
-            var newSentence = this._alterModifierSentence(sentence);
-            if (newSentence) {
-                errors.push(newSentence);
-            };
+            var editItems = this._alterModifierSentence(sentence);
+            Array.prototype.push.apply(errors, editItems);
         }, this);
         return errors;
     },
 
     /**
-     * Return whether given sentence has an appropriate sentence structure for creating
-     * a misplaced modifier edit
+     * Return whether given sentence has an appropriate sentence structure
+     * (ie, Part of Speech tags) for creating a misplaced modifier edit
      * @param {nlp.Sentence}
      * @returns {Boolean}
      */
     _alterModifierSentence : function (sentence) {
-        var isMatchingStructure = false,
-            structure = sentence.tags().join(),
+        var editItems = [],
+            sentenceStructure = sentence.tags().join(),
             tokens = this.parseToTokens(sentence.text());
         _.find(this.modifierSentenceRules, function(modifierRule) {
             var modifierStructure = modifierRule.sentenceStructure;
-            if (modifierStructure.test(structure)) {
-                isMatchingStructure = true;
-                var match = structure.match(modifierStructure);
-                var matchStart = structure.search(modifierStructure);
-                // @todo - this looks like a bug in case matchStart is 0...
-                var startToken = this._getTokenCount(structure.slice(0, matchStart)) - 1;
-                var endToken = startToken + this._getTokenCount(match[0]) - 1;
-                var endCharIndex = matchStart;
-                _.each(tokens.slice(startToken, endToken), function (token) {
-                    endCharIndex += token.text.length;
-                });
+            if (modifierStructure.test(sentenceStructure)) {
+                var match = sentenceStructure.match(modifierStructure);
 
-                var newSentence = '';
-                _.each(tokens.slice(0, startToken), function(token) {
-                    newSentence += token.text;
-                });
-                _.each(modifierRule.newStructure.split(','), function (structureMatchGroup) {
-                    var tokenOffset = startToken;
-                    structureMatchGroup = parseInt(structureMatchGroup.slice(1));
-                    var groupCount = 1;
-                    while (groupCount < structureMatchGroup) {
-                        tokenOffset += this._getTokenCount(match[groupCount]); 
-                        groupCount += 1;
-                    }
-                    _.each(tokens.slice(tokenOffset, tokenOffset + this._getTokenCount(match[structureMatchGroup])), function (token) {
-                        newSentence += token.text;
-                    });
-                }, this);
-                var editItem = new EditItem(matchStart, endCharIndex, newSentence, 'misplaced-modifier');
+                // Get matching tokens
+                var matchedTokens = this._getMatchingTokens(modifierStructure, tokens);
+
+                // Get start/end char indexes
+                var startTokenIndex = this._getTokenCount(sentenceStructure.slice(0, match.index));
+                var leadingCharCount = tokensToText(tokens.slice(0, startTokenIndex)).length,
+                    startCharIndex = sentence.text().indexOf(matchedTokens[0].text, leadingCharCount);
+                var endCharIndex = startCharIndex + tokensToText(matchedTokens).length;
+
+                // Alter tokens to new POS structure
+                var editedTokens = this._editTokens(match, modifierRule.newStructure, matchedTokens);
+
+                // Create EditItem
+                var editedText = tokensToText(editedTokens);
+                editItems.push(new EditItem(startCharIndex, endCharIndex, editedText, 'misplaced-modifier'));
             }
-            return isMatchingStructure;
         }, this);
-        return isMatchingStructure;
+        return editItems;
+    },
+
+    /**
+     * Map the matched POS tags to matched tokens and
+     * return list of adjusted tokens according to the new POS structure
+     * @param {regExp Match object} regExpMatch: eg. ['IN,NN,IN,PP', 'IN,NN', 'IN,PP']
+     * @param {string} editPosStructure: eg. '$2,$1'
+     * @param {Array.<nlp.Token>} tokens
+     * @returns {Array.<nlp.Token>}
+     */
+    _editTokens : function (regExpMatch, editPosStructure, tokens) {
+        // Map tokens to Groups of tokens (aligning with matched POS tag groups)
+        // tokenMatchGroups format: {$1: [tokenIN, tokenPP], $2: [tokenIN, tokenNN]}
+        var matchedTokenCount = 0;
+        var tagMatchGroups = regExpMatch.slice(1);
+        var tokenMatchGroups = _.reduce(tagMatchGroups, function (tokenMatchGroups, posTagMatchGroup, index) {
+            // index starts at 0, but match group indexes start at 1
+            var groupId = '$' + (index + 1).toString();
+            var groupTokenCount = this._getTokenCount(posTagMatchGroup);
+            tokenMatchGroups[groupId] = tokens.slice(matchedTokenCount,
+                                                     matchedTokenCount + groupTokenCount);
+            matchedTokenCount += groupTokenCount;
+            return tokenMatchGroups;
+        }, {}, this);
+
+        // Rearrange token Groups according to editPosStructure
+        var editedTokens = [];
+        _.each(editPosStructure.split(','), function (groupId) {
+            Array.prototype.push.apply(editedTokens, tokenMatchGroups[groupId]);
+        });
+        return editedTokens;
+    },
+
+    /**
+     * Return a subset of tokens that matches the given POS structure
+     * @param {regExp} modifierStructure
+     * @param {Array.<nlp.Token>} tokens
+     * @returns {Array.<nlp.Token>}
+     * @example _getMatchingTokens(/(IN,[\w]+)/, [Token1, Token2, Token3]) => [Token2, Token3]
+     */
+    _getMatchingTokens : function (modifierStructure, tokens) {
+        var tokenPosStructure = this._getTokenPosStructure(tokens);
+        var match = tokenPosStructure.match(modifierStructure),
+            matchedPosStructure = match[0];
+        var matchStartTagIndex = this._getTokenCount(tokenPosStructure.slice(0, match.index));
+        var matchTokenCnt = this._getTokenCount(matchedPosStructure);
+        return tokens.slice(matchStartTagIndex,
+                            matchStartTagIndex + matchTokenCnt);
+    },
+
+    /**
+     * Get the POS tag sequence representing structure of the given list of tokens
+     * @param {Array.<nlp.Token>} tokens
+     * @returns {string}
+     */
+    _getTokenPosStructure : function (tokens) {
+        var tokenTags = _.map(tokens, function (token) { return token.pos.tag; });
+        return tokenTags.join(',');
     },
 
     /**
      * Get the number of tokens represented by a string of part-of-speech tags
      * @param {string} structure
-     * @return {number}
+     * @returns {number}
      * @example _getTokenCount('IN,JJ,NN') => 3
      */
     _getTokenCount : function (structure) {
+        // Remove leading ','
+        if (structure.slice(0,1) === ',') {
+            structure = structure.slice(1);
+        }
+        // Remove trailing ','
+        if (structure.slice(-1) === ',') {
+            structure = structure.slice(0,-1);
+        }
+        // If empty string, return 0
+        if (structure === '') {
+            return 0;
+        }
         return structure.split(',').length;
     }
 });
