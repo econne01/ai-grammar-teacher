@@ -94,16 +94,29 @@ var MisplacedModifierTeacher = BaseTeacher.extend({
             // index starts at 0, but match group indexes start at 1
             var groupId = '$' + (index + 1).toString();
             var groupTokenCount = this._getTokenCount(posTagMatchGroup);
-            tokenMatchGroups[groupId] = tokens.slice(matchedTokenCount,
-                                                     matchedTokenCount + groupTokenCount);
+            tokenMatchGroups[groupId] = {};
+            var groupTokens = tokens.slice(matchedTokenCount,
+                                           matchedTokenCount + groupTokenCount);
+            tokenMatchGroups[groupId].tokens = groupTokens;
+            tokenMatchGroups[groupId].capitalized = /^[A-Z]/.test(groupTokens[0]);
+            var punctuationMatch = _.last(groupTokens).text.match(/[,.;:\'\"?!]+$/);
+            tokenMatchGroups[groupId].punctuation = punctuationMatch && punctuationMatch[0];
             matchedTokenCount += groupTokenCount;
             return tokenMatchGroups;
         }, {}, this);
 
         // Rearrange token Groups according to editPosStructure
         var editedTokens = [];
-        _.each(editPosStructure.split(','), function (groupId) {
-            Array.prototype.push.apply(editedTokens, tokenMatchGroups[groupId]);
+        _.each(editPosStructure.split(','), function (groupId, index) {
+            var origGroup = tokenMatchGroups['$' + (index +1).toString()];
+            var newGroup = tokenMatchGroups[groupId];
+            if (origGroup.capitalized) {
+                newGroup.tokens[0].text[0] = newGroup.tokens[0].text[0].toUpper();
+            }
+            if (origGroup.punctuation) {
+                _.last(newGroup.tokens).text += origGroup.punctuation;
+            }
+            Array.prototype.push.apply(editedTokens, newGroup.tokens);
         });
         return editedTokens;
     },
