@@ -24,10 +24,26 @@ var BaseTeacher = Class.extend({
     },
 
     /**
+     * Use NLP to parse an input string into sentences. Modify to add character start_index
+     * where sentence text is located within larger inputText string
+     * @param inputText
+     * @returns {Array.<nlp.sentence>}
+     */
+    parseToSentences : function parseToSentences(inputText) {
+        var charIndex = 0,
+            sentences = nlp.pos(inputText).sentences;
+        _.each(sentences, function(sentence) {
+            sentence.startIndex = inputText.indexOf(sentence.text(), charIndex);
+            charIndex = sentence.startIndex + sentence.text().length;
+        });
+        return sentences;
+    },
+
+    /**
      * Use NLP to parse an input string into tokens. Modify tokens to add character start_index
      * where token text is located within larger inputText string
      * @param inputText
-     * @returns {Array}
+     * @returns {Array.<nlp.token>}
      */
     parseToTokens : function parseToTokens(inputText) {
         var tokens = [],

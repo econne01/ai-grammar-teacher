@@ -34,9 +34,13 @@ var MisplacedModifierTeacher = BaseTeacher.extend({
      */
     getPossibleErrors : function (inputText) {
         var errors = [];
-        var sentences = nlp.pos(inputText).sentences;
+        var sentences = this.parseToSentences(inputText);
         _.each(sentences, function(sentence) {
             var editItems = this._alterModifierSentence(sentence);
+            _.each(editItems, function (editItem) {
+                editItem.startIndex += sentence.startIndex;
+                editItem.endIndex += sentence.startIndex;
+            });
             Array.prototype.push.apply(errors, editItems);
         }, this);
         return errors;
@@ -99,7 +103,7 @@ var MisplacedModifierTeacher = BaseTeacher.extend({
                                            matchedTokenCount + groupTokenCount);
             tokenMatchGroups[groupId].tokens = groupTokens;
             tokenMatchGroups[groupId].capitalized = /^[A-Z]/.test(groupTokens[0]);
-            var punctuationMatch = _.last(groupTokens).text.match(/[,.;:\'\"?!]+$/);
+            var punctuationMatch = _.last(groupTokens).text.match(/[,.;:\'\"?!-]+$/);
             tokenMatchGroups[groupId].punctuation = punctuationMatch && punctuationMatch[0];
             matchedTokenCount += groupTokenCount;
             return tokenMatchGroups;
