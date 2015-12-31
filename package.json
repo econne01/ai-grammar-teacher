@@ -23,6 +23,8 @@
   "scripts": {
     "postinstall": "bower install",
     "prestart": "npm install",
-    "start": "nodemon server.js --apihost=localhost --apiport=8888"
+    "start": "nodemon server.js --apihost=localhost --apiport=8888",
+    "unittest-debug": "node ./node_modules/node-inspector/bin/node-debug.js ./src/server/test/app.js",
+    "unittest": "node ./src/server/test/app.js"
   }
 }
